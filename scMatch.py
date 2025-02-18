@@ -46,7 +46,7 @@ def SPMAnno(refDB, keepZeros, testMethod, testCol):
         return (firstLayerHeader, thirdLayerHeader, secondLayerHeader, spr_correlation, testCol.columns[0], spr_correlation.iloc[0,0], spr_correlation.iloc[0,1])
     elif testMethod == 'Pearson':
         pes_correlation = testrefDB.apply(lambda col: pearsonr(col.to_frame(), testCol)[0], axis=0)
-        pes_correlation = pes_correlation.fillna(0).round(10).T.ix[:,0].reset_index()
+        pes_correlation = pes_correlation.fillna(0).round(10).T.iloc[:,0].reset_index()
         pes_correlation.columns = ['sample name', 'Pearson correlation coefficient']
         secondLayerHeader = ['sample name', 'Pearson correlation coefficient']
         pes_correlation = pes_correlation.sort_values(by=['Pearson correlation coefficient'], ascending=False)
@@ -61,13 +61,13 @@ def TransferToHids(refDS, species, geneList):
 
     homoDF = pd.read_csv(os.path.join(refDS, 'homologene.data'), sep='\t', index_col=None, header=None)
     # reduce the list to genes of the given species
-    speciesDF = homoDF.ix[homoDF[taxidCol] == int(species),].set_index(geneSymbolCol)
+    speciesDF = homoDF.iloc[homoDF[taxidCol] == int(species),].set_index(geneSymbolCol)
 
     geneDF = speciesDF.loc[speciesDF.index.isin(geneList)]
     notnaGenes = geneDF[geneDF[hidCol].notnull()]
-    notnaGenes = notnaGenes.ix[~notnaGenes[hidCol].duplicated(keep='first'),]
+    notnaGenes = notnaGenes.iloc[~notnaGenes[hidCol].duplicated(keep='first'),]
     notnaGenesSymbols = list(notnaGenes.index)
-    notnaGenesHIDs = list(notnaGenes.ix[:, hidCol])
+    notnaGenesHIDs = list(notnaGenes.iloc[:, hidCol])
     notnaGenesHIDs = [int(i) for i in notnaGenesHIDs]
     return notnaGenesSymbols, notnaGenesHIDs
 
@@ -83,17 +83,17 @@ def AnnSCData(testType, em, refDS, refType, refTypeName, keepZeros, testMethod, 
         #for different species, transfer symbols to hids
         geneList = list(em.index)
         geneList, hidList = TransferToHids(refDS, testType, geneList)
-        em = em.ix[~em.index.duplicated(keep='first'),]
-        em = em.ix[geneList, ]
+        em = em.iloc[~em.index.duplicated(keep='first'),]
+        em = em.iloc[geneList, ]
         hidList = [str(i) for i in hidList]
         em.index = hidList
         hidList = [str(i) for i in refDB.index]
         refDB.index = hidList
         
     #remove duplicate indices
-    refDB = refDB.ix[~refDB.index.duplicated(keep='first'),]
+    refDB = refDB.iloc[~refDB.index.duplicated(keep='first'),]
     print('reference dataset shape: %s genes, %s samples' % refDB.shape)
-    em = em.ix[~em.index.duplicated(keep='first'),]
+    em = em.iloc[~em.index.duplicated(keep='first'),]
     
     #split expression matrix to single-cell expression profiles
     eps = np.split(em, len(em.columns), axis=1)
@@ -146,7 +146,7 @@ def AnnSCData(testType, em, refDS, refType, refTypeName, keepZeros, testMethod, 
     topAnn = pd.DataFrame({'cell':[i[4] for i in resultList], 'cell type':[''] * len(resultList), 'top sample':[i[5] for i in resultList], 'top correlation score':[i[6] for i in resultList]})
     mapData = pd.read_csv(os.path.join(refDS, '%s_map.csv' % refType), index_col=0, header=0)
     for idx in topAnn.index:
-        topAnn.ix[idx, 'cell type'] = mapData.ix[topAnn.ix[idx, 'top sample'], 'cell type']
+        topAnn.iloc[idx, 'cell type'] = mapData.iloc[topAnn.iloc[idx, 'top sample'], 'cell type']
     saveNameP = os.path.join(savefolder, refTypeName+"_%s_top_ann.csv" % (testMethod))
     topAnn.to_csv(saveNameP, index=False, columns = ['cell', 'cell type', 'top sample', 'top correlation score'])
     print('##########DONE!')
@@ -187,8 +187,8 @@ def main(testType, testFormat, testDS, testGenes, refDS, refTypeList, keepZeros,
     if testGenes != 'none':
         testGeneList = set(pd.read_csv(testGenes,index_col=None, header=0).columns)
         geneList = testGeneList.intersection(testGeneList)
-        em = em.ix[~em.index.duplicated(keep='first'),]
-        em = em.ix[geneList,]
+        em = em.iloc[~em.index.duplicated(keep='first'),]
+        em = em.iloc[geneList,]
     print('test dataset shape: %s genes, %s samples' % em.shape)
     
     hidSpecDict = {'9606':'human', '10090':'mouse'}
@@ -239,7 +239,7 @@ def main(testType, testFormat, testDS, testGenes, refDS, refTypeList, keepZeros,
             mapData2 = pd.read_csv(os.path.join(refDS, '10090_map.csv'), index_col=0, header=0)
             mapData = pd.concat([mapData1, mapData2])
             for idx in mergedAnn.index:
-                mergedAnn.ix[idx, 'cell type'] = mapData.ix[mergedAnn.ix[idx, 'top sample'], 'cell type']
+                mergedAnn.iloc[idx, 'cell type'] = mapData.iloc[mergedAnn.iloc[idx, 'top sample'], 'cell type']
             saveNameP = os.path.join(savefolder, "combined_%s_top_ann.csv" % (testMethod))
             mergedAnn.to_csv(saveNameP, index=False, columns = ['cell', 'cell type', 'top sample', 'top correlation score'])
             
