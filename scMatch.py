@@ -62,11 +62,11 @@ def TransferToHids(refDS, species, geneList):
 
     homoDF = pd.read_csv(os.path.join(refDS, 'homologene.data'), sep='\t', index_col=None, header=None)
     # reduce the list to genes of the given species
-    speciesDF = homoDF.iloc[homoDF[taxidCol] == int(species),].set_index(geneSymbolCol)
+    speciesDF = homoDF.loc[homoDF[taxidCol] == int(species),].set_index(geneSymbolCol)
 
     geneDF = speciesDF.loc[speciesDF.index.isin(geneList)]
     notnaGenes = geneDF[geneDF[hidCol].notnull()]
-    notnaGenes = notnaGenes.iloc[~notnaGenes[hidCol].duplicated(keep='first'),]
+    notnaGenes = notnaGenes.loc[~notnaGenes[hidCol].duplicated(keep='first'),]
     notnaGenesSymbols = list(notnaGenes.index)
     notnaGenesHIDs = list(notnaGenes.iloc[:, hidCol])
     notnaGenesHIDs = [int(i) for i in notnaGenesHIDs]
@@ -85,7 +85,7 @@ def AnnSCData(testType, em, refDS, refType, refTypeName, keepZeros, testMethod, 
         geneList = list(em.index)
         geneList, hidList = TransferToHids(refDS, testType, geneList)
         em = em.iloc[~em.index.duplicated(keep='first'),]
-        em = em.iloc[geneList, ]
+        em = em.loc[geneList, ]
         hidList = [str(i) for i in hidList]
         em.index = hidList
         hidList = [str(i) for i in refDB.index]
@@ -102,6 +102,7 @@ def AnnSCData(testType, em, refDS, refType, refTypeName, keepZeros, testMethod, 
     #annotate single-cell expression profiles in parallel
     p = multiprocessing.Pool(coreNum)
     func = partial(SPMAnno, refDB, keepZeros, testMethod)
+
     resultList = p.map(func, eps)
     p.close()
     p.join()
