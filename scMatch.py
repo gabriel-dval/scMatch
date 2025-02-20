@@ -7,6 +7,9 @@ Created on Fri Apr 27 19:59:33 2018
 
 Development version
 Branch
+
+Example command :
+python scMatch.py --refType mouse --refDS refDB/FANTOM5 --testDS ../data/raw_sbm/raw_sbm_data_2024.11.15 
 """
 import warnings
 warnings.filterwarnings("ignore")
@@ -226,6 +229,7 @@ def main(testType, testFormat, testDS, testGenes, refDS, refTypeList, keepZeros,
                 
                 #annotate single-cell expression profiles in parallel
                 p = multiprocessing.Pool(coreNum)
+                raise ValueError('zflzdn')
                 resultList = p.map(SortAnno, mergedAnnList)
                 p.close()
                 p.join()
